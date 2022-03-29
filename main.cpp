@@ -15,17 +15,26 @@
  * TODO: Create a way to accept multiple input files (can we create a method to input files and process one file at a time?)
  * TODO:
  *
- * --- TASKS FOR ASSEMBLER RELATED FUNCTIONS ---
- * TODO: Accept input from main function and begin processing (
- * TODO: Memory Check
- * TODO: Program Pass 1 (page 53 and 54 of text)
- * TODO: Program Pass 2
- * TODO:
+
  * --- TASKS FOR LINKER RELATED FUNCTIONS ---
  * TODO: Generate ESTAB
+ * TODO: Memory Check
  * TODO: Program Pass 1
  * TODO: Program Pass 2
  * TODO:
+ *
+ * --- ESTAB FORMAT ---
+ * CTRLSC||SYMNAM||ADDRES||LENGTH
+ * Control Section should be only declared once at the start, and then left null for the symbols declared underneath
+ * Symname should be added when the symbol is defined with EXTDEF directives
+ * ADDRESS will be the defined with the symbol, and for the control sections, it will be calculated
+ * Length will be only used for control sections
+ *
+ * ADDRESS = Control Section Starting Address + Local Address in control sections
+ *
+ * How to handle the ESTAB? I'm not so sure
+ *
+ *
  *
  */
 
@@ -39,6 +48,7 @@ void printVectorContents(std::vector<char> *vectorPointer){
     for (int i=0; i<vectorPointer->size();i++){
         std::cout<< vectorPointer->at(i);
     }
+    std::cout<<std::endl;
 }
 //readFile will use ifstream to create a character vector containing the information of the input files
 std::vector<char> readFile(std::string fileName){
@@ -64,12 +74,10 @@ int main(int argc, char **argv) {
         std::cout<<"PROGRAM TERMINATED: ARGUMENTS NOT FOUND\n";
         return 0;
     }
-    std::string fileName;
-    fileName = argv[1];
-    std::vector<char> mainFileContents = readFile(fileName);
-
-    
-
+    for (int i = 0; i<argc; i++){
+        //Process the files one at a time, passing in the similar
+        std::vector<char> mainFileContents = readFile(argv[i]);
+    }
 //To pass the contents of a file to a module, reference the address of the fileContents vector
     return 0;
 }
