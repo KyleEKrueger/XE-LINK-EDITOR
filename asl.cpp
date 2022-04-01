@@ -59,20 +59,30 @@ std::vector<char> readFile(std::string fileName){
     fileStream.seekg(0,std::ifstream::beg);
     fileStream.read(&fileContents[0],fileSizeBytes);
 
-    if (DEBUG){
+    /*if (DEBUG){
         printVectorContents(&fileContents);
-    }
+    }*/
     return fileContents;
 }
 
 int main(int argc, char **argv) {
     
+    void createESTABfile(ESTAB mainESTAB);
     
     ESTAB mainESTAB(0);
-    if(DEBUG){
-    mainESTAB.ESTABtest.insert;
-    mainESTAB.ESTABtest.at(0).printESTABEntry;
+    if (DEBUG){ //Debug to create a sample ESTAB and create a file
+        mainESTAB.addNewESTABRow();
+        mainESTAB.addNewESTABRow();
+        mainESTAB.addNewESTABRow();
+        mainESTAB.addNewESTABRow();
+        mainESTAB.ESTABtest.at(0).symName = "Tacos";
+        mainESTAB.ESTABtest.at(0).isHeader = true;
+        mainESTAB.ESTABtest.at(1).symName = "Brett";
+        mainESTAB.ESTABtest.at(2).symName = "Kyle";
+        mainESTAB.ESTABtest.at(3).symName = "Guy";
+        createESTABfile(mainESTAB);
     }
+    
 
     //Check for arguments
     if (argc == 0){
@@ -83,8 +93,31 @@ int main(int argc, char **argv) {
         //Process the files one at a time, passing in the similar
         std::vector<char> mainFileContents = readFile(argv[i]);
     }
-
-
 //To pass the contents of a file to a module, reference the address of the fileContents vector
     return 0;
+}
+
+void createESTABfile(ESTAB mainESTAB){
+		//put code for opening file here
+    ofstream file;
+    file.open("ESTAB.st");
+    if (file.is_open()){
+        for (int i = 0; i < mainESTAB.ESTABrows; i++){
+            file << setfill('0') << setw(6) << mainESTAB.ESTABtest.at(i).ctrlSection;
+    	    file << "||";
+    	    file << setfill(' ') << setw(6) << left << mainESTAB.ESTABtest.at(i).symName;
+    	    file << "||";
+    	    file << setfill('0') << setw(6) << std::hex << mainESTAB.ESTABtest.at(i).Address;
+    	    file << "||";
+    	    file << setfill('0') << setw(6) << std::hex << mainESTAB.ESTABtest.at(i).Length;
+    	    file << std::endl;
+			//Put code for writing to file here
+			//ESTABtest.at(i).ctrSection;
+		}
+		//put code for closing file here
+		cout<<"File Created: ESTAB.st";
+    } else{
+        cout << "\nError opening ESTAB.st\n";
+    }
+    file.close();
 }
