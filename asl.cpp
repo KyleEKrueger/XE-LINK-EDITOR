@@ -40,6 +40,7 @@
 //FOR ANY DEBUGING FUNCTIONS, surround it in an if statement and change this to true
 bool DEBUG = true;
 #include "ESTAB.h"
+/*
 //printVectorConents takes the address to a character vector, and prints the contents to the console.
 void printVectorContents(std::vector<char> *vectorPointer){
     for (int i=0; i<vectorPointer->size();i++){
@@ -61,9 +62,10 @@ std::vector<char> readFile(std::string fileName){
 
     /*if (DEBUG){
         printVectorContents(&fileContents);
-    }*/
+    }
     return fileContents;
 }
+
 
 int main(int argc, char **argv) {
     
@@ -89,9 +91,16 @@ int main(int argc, char **argv) {
         std::cout<<"PROGRAM TERMINATED: ARGUMENTS NOT FOUND\n";
         return 0;
     }
-    for (int i = 0; i<argc; i++){
+    for (int i = 0; i < argc; i++){
         //Process the files one at a time, passing in the similar
-        std::vector<char> mainFileContents = readFile(argv[i]);
+        //std::vector<char> mainFileContents = readFile(argv[i]);
+        std::string line;
+        std::ifstream readingFile{argv[i]};
+
+        while(std::getline(readingFile, line)) {
+             std::cout << line << '\n';
+        }
+
     }
 //To pass the contents of a file to a module, reference the address of the fileContents vector
     return 0;
@@ -99,18 +108,18 @@ int main(int argc, char **argv) {
 
 void createESTABfile(ESTAB mainESTAB){
 		//put code for opening file here
-    ofstream file;
-    file.open("ESTAB.st");
-    if (file.is_open()){
+    ofstream writeFile;
+    writeFile.open("ESTAB.st");
+    if (writeFile.is_open()){
         for (int i = 0; i < mainESTAB.ESTABrows; i++){
-            file << setfill('0') << setw(6) << mainESTAB.ESTABtest.at(i).ctrlSection;
-    	    file << "||";
-    	    file << setfill(' ') << setw(6) << left << mainESTAB.ESTABtest.at(i).symName;
-    	    file << "||";
-    	    file << setfill('0') << setw(6) << std::hex << mainESTAB.ESTABtest.at(i).Address;
-    	    file << "||";
-    	    file << setfill('0') << setw(6) << std::hex << mainESTAB.ESTABtest.at(i).Length;
-    	    file << std::endl;
+            writeFile << setfill('0') << setw(6) << mainESTAB.ESTABtest.at(i).ctrlSection;
+    	    writeFile << "||";
+    	    writeFile << setfill(' ') << setw(6) << left << mainESTAB.ESTABtest.at(i).symName;
+    	    writeFile << "||";
+    	    writeFile << setfill('0') << setw(6) << std::hex << mainESTAB.ESTABtest.at(i).Address;
+    	    writeFile << "||";
+    	    writeFile << setfill('0') << setw(6) << std::hex << mainESTAB.ESTABtest.at(i).Length;
+    	    writeFile << std::endl;
 			//Put code for writing to file here
 			//ESTABtest.at(i).ctrSection;
 		}
@@ -119,5 +128,24 @@ void createESTABfile(ESTAB mainESTAB){
     } else{
         cout << "\nError opening ESTAB.st\n";
     }
-    file.close();
+    writeFile.close();
+}*/
+
+int main(int argc, char **argv) {
+//Check for arguments
+    if (argc == 0){
+        std::cout<<"PROGRAM TERMINATED: ARGUMENTS NOT FOUND\n";
+        return 0;
+    }
+    for (int i = 1; i < argc; i++){
+        //Process the files one at a time, passing in the similar
+        //std::vector<char> mainFileContents = readFile(argv[i]);
+        std::string line;
+        std::ifstream readingFile{argv[i]};
+
+        while(std::getline(readingFile, line)) {
+             std::cout << line << '\n';
+        }
+
+    }
 }
