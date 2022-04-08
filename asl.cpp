@@ -134,18 +134,67 @@ int main(int argc, char **argv) {
         //std::vector<char> mainFileContents = readFile(argv[i]);
         std::string line;
         std::ifstream readingFile{argv[i]};
+        char memLocation[4];
+        char symContents[6];
+        char directiveContents[6];
+        int columnCount = 0; // 0 = Memory col; 1 = Symbol col; 2 = Op col; 3 = Argument col; 4 = OpCode col;
         int strtAdd;
         int endAdd;
         //Our Pointer like variable that will be used to access
         int scanInt = 0;
-        bool exitLine;
+        bool exitLine, commentSeen = false,extendedFormat = false;
 
         while(std::getline(readingFile, line)) {
-            while(!exitLine){
-                if (line[scanInt] == '.'){ // check if we have found a comment, if so end the scanning of the line
-                    exitLine = true;
+        //GETTING THE LINE CONTENTS
+            for (int i = 0; i < line.length()-1;i++){
+                if (line[i] == '.'){ // check for comments
+                    commentSeen = true;
                 }
-                else{
+                if (i >= 0 && i <= 3){// Fetching the memory address
+                    memLocation[i] = line[i];
+                }
+                if (i>=8 && i<=15){// Fetching the Symbol name
+                    if (line[i] == ' '){
+                        continue;       //go to top of for loop to ignore spaces
+                    }
+                    else{
+                        symContents[i] = line[i];
+                    }
+                }
+                if (i == 16){
+                    if(line[i] == ' '){
+                        continue;
+                    }
+                    else if (line[i] == '+'){
+                        extendedFormat = true;
+                    }
+                    else if (line[i] == '='){
+                        //Check to see if the characters are end of file. AWAITING PROFESSOR RESPONSE TO EMAIL
+
+                    }
+                }
+            }
+
+                while (!exitLine)
+                {
+                    if (line[scanInt] == '.')
+                    { // check if we have found a comment, if so end the scanning of the line
+                        exitLine = true;
+                    }
+                    else{
+                    if (columnCount == 0){
+                        memLocation[scanInt] = line[scanInt];
+                    }
+                    else if (columnCount == 1){
+                        symContents[scanInt] = line[scanInt];
+                    }
+                    else if (columnCount == 2){
+                        directiveContents[6] = line[scanInt];
+                    }
+
+                    if (line[scanInt] == ' '){
+                        columnCount++;
+                    }
                     //Store memory variable from first line until first space
                     //Skip leading spaces, and check for symbol name Deal with symbol name
                     //Skip leading spaces, and check for directives
@@ -155,6 +204,7 @@ int main(int argc, char **argv) {
 
                 }
                 scanInt++;
+                
 
             }
             //Processing the Line
