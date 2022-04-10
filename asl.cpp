@@ -40,6 +40,7 @@
 //FOR ANY DEBUGING FUNCTIONS, surround it in an if statement and change this to true
 bool DEBUG = true;
 #include "ESTAB.h"
+#include "ObjectFile.h"
 #include <string>
 #include <cstring>
 
@@ -51,7 +52,10 @@ int main(int argc, char **argv) {
         std::cout<<"PROGRAM TERMINATED: ARGUMENTS NOT FOUND\n";
         return 0;
     }
+    int startingProgAddr = 0;
+    ESTAB mainESTAB(startingProgAddr);
     for (int i = 1; i < argc; i++){
+
         //Process the files one at a time, passing in the similar
         //std::vector<char> mainFileContents = readFile(argv[i]);
         std::string line;
@@ -61,7 +65,10 @@ int main(int argc, char **argv) {
         string directiveContents;
         string argumentContents;
         char argumentMod;
+        string fileName = argv[i]; //Generate the obj file name;
+        fileName = fileName.erase(fileName.size()-3,3) + "obj";
         string opCode;
+        ObjectFile objFile;
         //string variableNames[5] = {"memLocation","symContents","directiveContents","argumentContents","opCode"};
         int columnCount = 0; // 0 = Memory col; 1 = Symbol col; 2 = Op col; 3 = Argument col; 4 = OpCode col;
         int strtAdd;
@@ -72,6 +79,8 @@ int main(int argc, char **argv) {
 
         while(std::getline(readingFile, line)) {
         //GETTING THE LINE CONTENTS
+        //Create code to extract string of the file name
+
             for (int i = 0; i < line.length();i++){
                 if (line[i] == '.'){ // check for comments
                     commentSeen = true;
@@ -127,11 +136,24 @@ int main(int argc, char **argv) {
             }
 
             //Processing the Line
+            //Generating Modification Records:
+            /*
+             * Any time a symbol is encountered:
+             * Check if it exists on the external reference list
+             *      if it is, generate a modification record that takes the memory address,
+             */
+            //
             //ASSEMBLER DIRECTIVES: START, END, BYTE, WORD, RESB, RESW
+            if(directiveContents == "EXTREF"){
+                objFile.generateReferString(argumentContents);
+
+            }
             std::cout << line << '\n';
+            std::cout <<endl<<"REVISED FILE NAME: "<<fileName<<endl;
             std::cout<< "MEM: "<<memLocation<<endl<<"SYM: "<<symContents<<endl<<"EXT: "<<extendedFormat<<endl<<"DIR: "<<directiveContents<<endl<<"AMD: "<<argumentMod<<endl<<"ARG: "<<argumentContents<<endl<<"OPC: "<<opCode<<endl<<endl;
             //Resetting Line contents after Processing
             memLocation = "";
+            fileName = "";
             commentSeen = false;
             extendedFormat = false;
             symContents = "";
