@@ -43,7 +43,7 @@ bool DEBUG = true;
 #include "ObjectFile.h"
 #include <string>
 #include <cstring>
-
+#include <map>
 
 
 int main(int argc, char **argv) {
@@ -52,12 +52,22 @@ int main(int argc, char **argv) {
         std::cout<<"PROGRAM TERMINATED: ARGUMENTS NOT FOUND\n";
         return 0;
     }
+    typedef pair<string,string> symbol;
     int startingProgAddr = 0;
+    int strtAdd;
+    int endAdd;
+    string lastAdd;
     ESTAB mainESTAB(startingProgAddr);
     for (int i = 1; i < argc; i++){
 
         //Process the files one at a time, passing in the similar
         //std::vector<char> mainFileContents = readFile(argv[i]);
+        if (i == 1){
+            strtAdd = startingProgAddr;
+        }
+        else{
+            strtAdd = endAdd;
+        }
         std::string line;
         std::ifstream readingFile{argv[i]};
         string memLocation;
@@ -71,8 +81,7 @@ int main(int argc, char **argv) {
         ObjectFile objFile;
         //string variableNames[5] = {"memLocation","symContents","directiveContents","argumentContents","opCode"};
         int columnCount = 0; // 0 = Memory col; 1 = Symbol col; 2 = Op col; 3 = Argument col; 4 = OpCode col;
-        int strtAdd;
-        int endAdd;
+
         //Our Pointer like variable that will be used to access
         int scanInt = 0;
         bool exitLine, commentSeen = false,extendedFormat = false;
@@ -81,55 +90,58 @@ int main(int argc, char **argv) {
         //GETTING THE LINE CONTENTS
         //Create code to extract string of the file name
 
-            for (int i = 0; i < line.length();i++){
-                if (line[i] == '.'){ // check for comments
+            for (int j = 0; j < line.length(); j++){
+                if (line[j] == '.'){ // check for comments
                     commentSeen = true;
                 }
                 if(commentSeen == true){
                     //continue;
                 }
                 else {
-                    if (i >= 0 && i <= 3) {// Fetching the memory address
-                        memLocation+=line[i];
+                    if (j >= 0 && j <= 3) {// Fetching the memory address
+                        memLocation+=line[j];
                     }
-                    if (i >= 8 && i <= 13) {// Fetching the Symbol name
-                        if (line[i] == ' ') {
+                    if (j >= 8 && j <= 13) {// Fetching the Symbol name
+                        if (line[j] == ' ') {
                             //continue;       //go to top of for loop to ignore spaces
                         } else {
-                            symContents+=line[i];
+                            symContents+=line[j];
                         }
                     }
-                    if (i == 16) {
-                        if (line[i] == ' ') {
+                    if (j == 16) {
+                        if (line[j] == ' ') {
                             //continue;
-                        } else if (line[i] == '+') {
+                        } else if (line[j] == '+') {
                             extendedFormat = true;
-                        } else if (line[i] == '=') {
+                        } else if (line[j] == '=') {
                             //Check to see if the characters are end of file. AWAITING PROFESSOR RESPONSE TO EMAIL
 
                         }
                     }
-                    if (i >= 17 && i <= 22) {//Fetching the Directive
-                        directiveContents+=line[i];
-                    }
-                    if (i == 25) {//Fetching Argument Modifier
-                        argumentMod = line[i];
+                    if (j >= 17 && j <= 22) {//Fetching the Directive
+                        if (line[j] == ' ') {
+                            //continue;       //go to top of for loop to ignore spaces
+                        } else {
+                            directiveContents+=line[j];
+                        }                    }
+                    if (j == 25) {//Fetching Argument Modifier
+                        argumentMod = line[j];
 
                     }
-                    if (i >= 26 && i <= 50) {//Fetching the arguments
-                        if (line[i] == ' ') {
+                    if (j >= 26 && j <= 50) {//Fetching the arguments
+                        if (line[j] == ' ') {
                            // continue;
                         }
                         else{
-                            argumentContents+=line[i];
+                            argumentContents+=line[j];
                         }
                     }
-                    if (i >= 51 && i <= 58) {//Fetching the opCodef
-                        if (line[i] == ' ') {
-                            continue;
+                    if (j >= 51 && j <= 58) {//Fetching the opCodef
+                        if (line[j] == ' ') {
+                            //continue;
                         }
                         else {
-                            opCode+=line[i];
+                            opCode+=line[j];
                         }
                     }
                 }
@@ -144,14 +156,49 @@ int main(int argc, char **argv) {
              */
             //
             //ASSEMBLER DIRECTIVES: START, END, BYTE, WORD, RESB, RESW
-            if(directiveContents == "EXTREF"){
+
+            if(directiveContents == "EXTREF"){ // Handling the Assembler Directive EXTREF
                 objFile.generateReferString(argumentContents);
 
+            }
+            if(directiveContents == "EXTDEF"){
+                //Look at the arguments
+                string subArg = "";
+                unsigned short int lBound,boundDiff;
+                for (int k = 0;k<argumentContents.length();k++){
+                    if (argumentContents[k] ==',' || i == argumentContents.length()){
+                        boundDiff = i - lBound;
+                        subArg = argumentContents.substr(lBound,boundDiff);
+                        //Add a new row to this ctrl section's ESTAB w/o mem location
+                        mainESTAB.addNewESTABRow();
+                        mainESTAB.ESTABtest.at(mainESTAB.ESTABrows-1).isHeader = false;
+                        mainESTAB.ESTABtest.at(mainESTAB.ESTABrows-1).symName = subArg;
+                        mainESTAB.ESTABtest.at(mainESTAB.ESTABrows-1).ctrlSection = i;
+                    }
+
+                }
+                //Seperate the arguments (commas will seperate them, as well as the final space)
+                //Add arguments to a Symbol Map
+                //Generate new entries into the ESTAB
+            }
+            if (directiveContents == "START"){
+                //Initialize a new control section row in ESTAB and include everything but length
+                mainESTAB.addNewESTABRow();
+                mainESTAB.ESTABtest.at(mainESTAB.ESTABrows-1).isHeader = true;
+                mainESTAB.ESTABtest.at(mainESTAB.ESTABrows-1).ctrlSection = i;
+                mainESTAB.ESTABtest.at(mainESTAB.ESTABrows-1).symName = symContents;
+                mainESTAB.ESTABtest.at(mainESTAB.ESTABrows-1).Address = strtAdd;
+            }
+            if (directiveContents == "C'EOF'"){
+                mainESTAB.endControlSection(i,memLocation);
             }
             std::cout << line << '\n';
             std::cout <<endl<<"REVISED FILE NAME: "<<fileName<<endl;
             std::cout<< "MEM: "<<memLocation<<endl<<"SYM: "<<symContents<<endl<<"EXT: "<<extendedFormat<<endl<<"DIR: "<<directiveContents<<endl<<"AMD: "<<argumentMod<<endl<<"ARG: "<<argumentContents<<endl<<"OPC: "<<opCode<<endl<<endl;
             //Resetting Line contents after Processing
+            if (memLocation!=""){
+                lastAdd = (memLocation);
+            }
             memLocation = "";
             fileName = "";
             commentSeen = false;
@@ -165,7 +212,6 @@ int main(int argc, char **argv) {
 
 
         }
-        strtAdd = endAdd;
 
     }
 }
