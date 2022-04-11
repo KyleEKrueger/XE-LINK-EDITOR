@@ -33,7 +33,7 @@ public:
 
     //Prints the contents of a row of the ESTAB
 //public:
-    
+
 }ESTABEntry;
 
 
@@ -66,12 +66,15 @@ public:
             if (ESTABtest.at(i).isHeader && ESTABtest.at(i).ctrlSection == ctrlSection){
                 //String stream will take input as if it was a cout statement, and dump the input out with >> operator
                 strstream ss;
-                int iAddress,iEndingAddress;
-                ss<<std::hex<<ESTABtest.at(i).Address; // Tells the ss that it is a hex value being input
+                int iAddress =getPreviousEndAddress();
+                int iEndingAddress = 0;
+                ss<<std::hex<<"0x"<<ESTABtest.at(i).Address; // Tells the ss that it is a hex value being input
                 ss>>iAddress;
                 ss.clear();
-                ss<<std::hex<<endingAddress; // Tells the ss that it is a hex value being input
+                ss<<std::hex<<"0x"<<endingAddress; // Tells the ss that it is a hex value being input
                 ss>>iEndingAddress;
+                ss.clear();
+                ss.flush();
                 ESTABtest.at(i).Length = iAddress + iEndingAddress; // Value calculated will be in DEC format
                 cout<<"ENDCONTROLSECTION: The length calculated for control section "<<ctrlSection<<" is "<<std::hex<<ESTABtest.at(i).Length<<endl;
 
@@ -79,29 +82,49 @@ public:
         }
     }
 
-	void createESTABfile(){
-		//put code for opening file here
-    ofstream writeFile;
-    writeFile.open("ESTAB.st");
-    if (writeFile.is_open()){
-        for (int i = 0; i < ESTABrows; i++){
-            writeFile << setfill('0') << setw(6) << ESTABtest.at(i).ctrlSection;
-    	    writeFile << "||";
-    	    writeFile << setfill(' ') << setw(6) << left << ESTABtest.at(i).symName;
-    	    writeFile << "||";
-    	    writeFile << setfill('0') << setw(6) << std::hex << ESTABtest.at(i).Address;
-    	    writeFile << "||";
-    	    writeFile << setfill('0') << setw(6) << std::hex << ESTABtest.at(i).Length;
-    	    writeFile << std::endl;
-			//Put code for writing to file here
-			//ESTABtest.at(i).ctrSection;
-		}
-		//put code for closing file here
-		cout<<"File Created: ESTAB.st";
-    } else{
-        cout << "\nError opening ESTAB.st\n";
+    void createESTABfile(){
+        //put code for opening file here
+        ofstream writeFile;
+        writeFile.open("ESTAB.st");
+        if (writeFile.is_open()){
+            for (int i = 0; i < ESTABrows; i++) {
+                if (ESTABtest.at(i).isHeader) {
+                    writeFile << setfill(' ') << setw(6) << right << ESTABtest.at(i).symName;
+                    writeFile <<flush<< "||";
+                    writeFile << setfill(' ') << setw(8); //Why is this 8? IDK
+                    writeFile <<flush<< "||";
+                }
+                else{
+                writeFile << setfill(' ') << setw(6) << ESTABtest.at(i).ctrlSection;
+                writeFile <<flush<< "||";
+                writeFile << setfill(' ') << setw(6) << right << ESTABtest.at(i).symName;
+                writeFile << flush<<"||";
+                }
+                writeFile << setfill('0') << setw(6) <<std::hex<< ESTABtest.at(i).Address;
+                writeFile <<flush<< "||";
+                writeFile << setfill('0') << setw(6) << std::hex << ESTABtest.at(i).Length;
+                writeFile <<std::flush<< std::endl;
+                //Put code for writing to file here
+                //ESTABtest.at(i).ctrSection;
+            }
+            //put code for closing file here
+            cout<<"File Created: ESTAB.st";
+        } else{
+            cout << "\nError opening ESTAB.st\n";
+        }
+        writeFile.close();
     }
-    writeFile.close();
-	}
+
+    int getPreviousEndAddress(){
+        int lastCS = ESTABtest.at(ESTABrows-1).ctrlSection;
+        if(ESTABrows>0 && lastCS>0) {
+            for (int i = 0; i < ESTABrows; i++) {
+                if (ESTABtest.at(i).isHeader && ESTABtest.at(i).ctrlSection == lastCS - 1) {
+                    return ESTABtest.at(i).Address + ESTABtest.at(i).Length;
+                }
+            }
+        }
+        else return 0;
+    }
 
 } ESTAB;
