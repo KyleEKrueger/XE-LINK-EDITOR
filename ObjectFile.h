@@ -47,6 +47,7 @@ public:
             finalTextRecord+=outputString;
         }
         recordStartingAdd = "";
+        return finalTextRecord;
 
 
     }
