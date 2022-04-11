@@ -25,10 +25,8 @@ public:
     bool isHeader = false; // if this is true, then symname will be the name of the control section
     unsigned short int ctrlSection = 0; // int that incriments with each control section
     string symName = "NULL";
-    unsigned int Address = 0;
-    unsigned int Length = 0;
-
-    char outputRow[30];
+     int Address = 0;
+     int Length = 0;
 
 
     //Prints the contents of a row of the ESTAB
@@ -76,7 +74,7 @@ public:
                 ss.clear();
                 ss.flush();
                 ESTABtest.at(i).Length = iAddress + iEndingAddress; // Value calculated will be in DEC format
-                cout<<"ENDCONTROLSECTION: The length calculated for control section "<<ctrlSection<<" is "<<std::hex<<ESTABtest.at(i).Length<<endl;
+               // cout<<"ENDCONTROLSECTION: The length calculated for control section "<<ctrlSection<<" is "<<std::hex<<ESTABtest.at(i).Length<<endl;
 
             }
         }
