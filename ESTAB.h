@@ -32,19 +32,8 @@ public:
 
 
     //Prints the contents of a row of the ESTAB
-public:
-    void printESTABEntry(){ // TODO: Create if statement for isHEader
-        cout << setfill('0') << setw(6) << ctrlSection;
-        cout << "||";
-        cout << setfill(' ') << setw(6) << left <<symName;
-        cout << "||";
-        cout << setfill('0') << setw(6) << std::hex << Address;
-        cout << "||";
-        cout << setfill('0') << setw(6) << std::hex << Length;
-        cout << std::endl;
-    }
-
-
+//public:
+    
 }ESTABEntry;
 
 
@@ -89,4 +78,30 @@ public:
             }
         }
     }
+
+	void createESTABfile(){
+		//put code for opening file here
+    ofstream writeFile;
+    writeFile.open("ESTAB.st");
+    if (writeFile.is_open()){
+        for (int i = 0; i < ESTABrows; i++){
+            writeFile << setfill('0') << setw(6) << ESTABtest.at(i).ctrlSection;
+    	    writeFile << "||";
+    	    writeFile << setfill(' ') << setw(6) << left << ESTABtest.at(i).symName;
+    	    writeFile << "||";
+    	    writeFile << setfill('0') << setw(6) << std::hex << ESTABtest.at(i).Address;
+    	    writeFile << "||";
+    	    writeFile << setfill('0') << setw(6) << std::hex << ESTABtest.at(i).Length;
+    	    writeFile << std::endl;
+			//Put code for writing to file here
+			//ESTABtest.at(i).ctrSection;
+		}
+		//put code for closing file here
+		cout<<"File Created: ESTAB.st";
+    } else{
+        cout << "\nError opening ESTAB.st\n";
+    }
+    writeFile.close();
+	}
+
 } ESTAB;

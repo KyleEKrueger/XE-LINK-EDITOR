@@ -163,11 +163,11 @@ int main(int argc, char **argv) {
             }
             if(directiveContents == "EXTDEF"){
                 //Look at the arguments
-                string subArg = "";
                 unsigned short int lBound,boundDiff;
                 for (int k = 0;k<argumentContents.length();k++){
                     if (argumentContents[k] ==',' || i == argumentContents.length()){
                         boundDiff = i - lBound;
+                        string subArg = "";
                         subArg = argumentContents.substr(lBound,boundDiff);
                         //Add a new row to this ctrl section's ESTAB w/o mem location
                         mainESTAB.addNewESTABRow();
@@ -214,4 +214,5 @@ int main(int argc, char **argv) {
         }
 
     }
+    mainESTAB.createESTABfile();
 }
