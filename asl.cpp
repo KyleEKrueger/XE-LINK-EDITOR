@@ -43,6 +43,7 @@ bool DEBUG = true;
 #include "ESTAB.h"
 #include "ObjectFile.h"
 #include <string>
+#include <stdlib.h>
 #include <cstring>
 #include <map>
 
@@ -55,10 +56,9 @@ int main(int argc, char **argv) {
     }
     int startingProgAddr = 0;
     int strtAdd;
-    int endAdd;
+    int endAdd = 0;
     string lastAdd;
     ESTAB mainESTAB(startingProgAddr);
-    ObjectFile mainOBJ;
     for (int i = 1; i < argc; i++) {
 
         //Process the files one at a time, passing in the similar
@@ -71,20 +71,20 @@ int main(int argc, char **argv) {
         std::string line;
         std::ifstream readingFile{argv[i]};
         string memLocation;
+        string ctrlName;
         string symContents;
         string directiveContents;
         string argumentContents;
+        TextRecord mainText;
+        ObjectFile mainOBJ;
         char argumentMod;
         string fileName = argv[i]; //Generate the obj file name;
         fileName = fileName.erase(fileName.size() - 3, 3) + "obj";
         string opCode;
         ObjectFile objFile;
-        //string variableNames[5] = {"memLocation","symContents","directiveContents","argumentContents","opCode"};
-        int columnCount = 0; // 0 = Memory col; 1 = Symbol col; 2 = Op col; 3 = Argument col; 4 = OpCode col;
+        bool commentSeen = false, extendedFormat = false;
 
-        //Our Pointer like variable that will be used to access
-        int scanInt = 0;
-        bool exitLine, commentSeen = false, extendedFormat = false;
+        mainText.ctrlLoadAdd = strtAdd;
 
         while (std::getline(readingFile, line)) {
             //GETTING THE LINE CONTENTS
@@ -98,7 +98,12 @@ int main(int argc, char **argv) {
                     //continue;
                 } else {
                     if (j >= 0 && j <= 3) {// Fetching the memory address
-                        memLocation += line[j];
+                        if (line[j] <=32){
+                            //continue;
+                        }
+                        else {
+                            memLocation += line[j];
+                        }
                     }
                     if (j >= 8 && j <= 13) {// Fetching the Symbol name
                         if (line[j] == ' ') {
@@ -159,7 +164,7 @@ int main(int argc, char **argv) {
                 objFile.generateReferString(argumentContents);
 
             }
-            if (directiveContents == "EXTDEF") {
+            else if (directiveContents == "EXTDEF") {
                 //Look at the arguments
                 unsigned short int lBound = 0, boundDiff = 0;
                 for (int k = 0; k <= argumentContents.length(); k++) {
@@ -183,26 +188,47 @@ int main(int argc, char **argv) {
                 //Add arguments to a Symbol Map
                 //Generate new entries into the ESTAB
             }
-            if (directiveContents == "START") {
+            else if (directiveContents == "START") {
                 //Initialize a new control section row in ESTAB and include everything but length
                 mainESTAB.addNewESTABRow();
                 mainESTAB.ESTABtest.at(mainESTAB.ESTABrows - 1).isHeader = true;
                 mainESTAB.ESTABtest.at(mainESTAB.ESTABrows - 1).ctrlSection = i;
                 mainESTAB.ESTABtest.at(mainESTAB.ESTABrows - 1).symName = symContents;
+                ctrlName = symContents;
                 mainESTAB.ESTABtest.at(mainESTAB.ESTABrows - 1).Address = strtAdd;
             }
             //EOF processing, generate End record
-            if (directiveContents == "C'EOF'") {
+           else if (directiveContents == "C'EOF'") {
                 mainESTAB.endControlSection(i, memLocation);
-                endAdd = stoi(memLocation);
+                endAdd = strtol(&memLocation[0], nullptr,16);
 
 
             }
-
-            if (opCode != "") {
+            else if (directiveContents == "RESW"){
+                mainText.generateTextRecord();
 
             }
-            std::cout << line << endl;
+            else if (directiveContents == "BASE"){
+
+            }
+
+            else if (opCode != ""&&directiveContents!="C'EOF'") {
+
+                mainText.addTextRecordInstruction(opCode,memLocation);
+                if (mainText.recordStartingAdd == "") {
+                    if (memLocation != "") {
+                        mainText.recordStartingAdd = strtol(&memLocation[0], nullptr, 10) + strtAdd;
+                    }
+                }
+
+            }
+            else{
+                if(mainText.getTextRecordLength()!=0){
+                    mainText.generateTextRecord();
+
+                }
+            }
+            //std::cout << line << endl;
             //std::cout <<endl<<"REVISED FILE NAME: "<<fileName<<endl;
             // std::cout<< "MEM: "<<memLocation<<endl<<"SYM: "<<symContents<<endl<<"EXT: "<<extendedFormat<<endl<<"DIR: "<<directiveContents<<endl<<"AMD: "<<argumentMod<<endl<<"ARG: "<<argumentContents<<endl<<"OPC: "<<opCode<<endl<<endl;
 
@@ -216,10 +242,21 @@ int main(int argc, char **argv) {
             argumentContents = "";
             opCode = "";
             argumentMod = ' ';
-
-
-
         }
+        //Header Record
+        int ctrlSectLine = 0;
+        for(int k=0;k<mainESTAB.ESTABrows;k++){
+            if(mainESTAB.ESTABtest.at(k).isHeader == true){
+                if(mainESTAB.ESTABtest.at(k).ctrlSection == i){
+                    ctrlSectLine = k;
+                }
+            }
+        }
+        cout <<std::hex<<objFile.generateHeaderString(ctrlName,mainESTAB.ESTABtest.at(ctrlSectLine).Address,mainESTAB.ESTABtest.at(ctrlSectLine).Length)<<endl;
+        cout<<mainText.finalTextRecord;
+
+        //
+
 
     }
     mainESTAB.createESTABfile();
