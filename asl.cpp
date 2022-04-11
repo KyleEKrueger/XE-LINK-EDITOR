@@ -228,6 +228,14 @@ int main(int argc, char **argv) {
 
                 }
             }
+            if(symContents!=""){
+                for (int k=0;k<mainESTAB.ESTABrows-1;k++){
+                    if (symContents == mainESTAB.ESTABtest.at(k).symName){
+                        mainESTAB.ESTABtest.at(k).Address = stoi(memLocation);
+
+                    }
+                }
+            }
             //std::cout << line << endl;
             //std::cout <<endl<<"REVISED FILE NAME: "<<fileName<<endl;
             // std::cout<< "MEM: "<<memLocation<<endl<<"SYM: "<<symContents<<endl<<"EXT: "<<extendedFormat<<endl<<"DIR: "<<directiveContents<<endl<<"AMD: "<<argumentMod<<endl<<"ARG: "<<argumentContents<<endl<<"OPC: "<<opCode<<endl<<endl;
@@ -243,6 +251,7 @@ int main(int argc, char **argv) {
             opCode = "";
             argumentMod = ' ';
         }
+
         //Header Record
         int ctrlSectLine = 0;
         for(int k=0;k<mainESTAB.ESTABrows;k++){
