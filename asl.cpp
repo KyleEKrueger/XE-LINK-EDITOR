@@ -73,6 +73,7 @@ int main(int argc, char **argv) {
         string memLocation;
         string ctrlName;
         string symContents;
+        string testes;
         string directiveContents;
         string argumentContents;
         TextRecord mainText;
@@ -161,7 +162,7 @@ int main(int argc, char **argv) {
             //ASSEMBLER DIRECTIVES: START, END, BYTE, WORD, RESB, RESW
 
             if (directiveContents == "EXTREF") { // Handling the Assembler Directive EXTREF
-                objFile.generateReferString(argumentContents);
+                testes = objFile.generateReferString(argumentContents);
 
             }
             else if (directiveContents == "EXTDEF") {
@@ -201,8 +202,7 @@ int main(int argc, char **argv) {
            else if (directiveContents == "C'EOF'") {
                 mainESTAB.endControlSection(i, memLocation);
                 endAdd = strtol(&memLocation[0], nullptr,16);
-
-
+               // cout<<endl<<"END ADD: "<<endAdd<<endl;
             }
             else if (directiveContents == "RESW"){
                 mainText.generateTextRecord();
@@ -214,7 +214,7 @@ int main(int argc, char **argv) {
 
             else if (opCode != ""&&directiveContents!="C'EOF'") {
 
-                mainText.addTextRecordInstruction(opCode,memLocation);
+                mainText.addTextRecordInstruction(opCode,memLocation,strtAdd);
                 if (mainText.recordStartingAdd == "") {
                     if (memLocation != "") {
                         mainText.recordStartingAdd = strtol(&memLocation[0], nullptr, 10) + strtAdd;
@@ -261,9 +261,23 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        cout <<std::hex<<objFile.generateHeaderString(ctrlName,mainESTAB.ESTABtest.at(ctrlSectLine).Address,mainESTAB.ESTABtest.at(ctrlSectLine).Length)<<endl;
-        cout<<mainText.finalTextRecord;
-
+        cout <<std::hex<<objFile.generateHeaderString(ctrlName, to_string(mainESTAB.ESTABtest.at(ctrlSectLine).Address),
+                                                      to_string(mainESTAB.ESTABtest.at(ctrlSectLine).Length))<<endl;
+        //Define Record
+        cout<<"D";
+        for (int i = ctrlSectLine;i<mainESTAB.ESTABrows;i++){
+            if (mainESTAB.ESTABtest.at(i).isHeader == false && mainESTAB.ESTABtest.at(i).ctrlSection == mainESTAB.ESTABtest.at(ctrlSectLine).ctrlSection){
+                cout<<objFile.generateDefineString(mainESTAB.ESTABtest.at(i).symName, to_string(mainESTAB.ESTABtest.at(i).Address));
+           }
+        }
+        //Refer Record
+        cout<<endl<<testes;
+        //Text Record
+        cout<<endl<<mainText.finalTextRecord;
+        //End Record
+        cout<<objFile.generateEndString(mainESTAB.ESTABtest.at(ctrlSectLine).Address);
+        //My depression
+        //oWo
         //
 
 
