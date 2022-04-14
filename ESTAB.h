@@ -25,8 +25,8 @@ public:
     bool isHeader = false; // if this is true, then symname will be the name of the control section
     unsigned short int ctrlSection = 0; // int that incriments with each control section
     string symName = "NULL";
-     int Address = 0;
-     int Length = 0;
+    int Address = 0;
+    int Length = 0;
 
 
     //Prints the contents of a row of the ESTAB
