@@ -53,14 +53,15 @@ public:
     }
 
     //Adds an opCode to a text record, generates text record if text record has reached maximum length
-    void addTextRecordInstruction(string opCode, string memLocation) {
+    void addTextRecordInstruction(string opCode, string memLocation,int startAddress ) {
+       memLocation = to_string(stoi(memLocation)+startAddress);
 
         if (recordStartingAdd == ""){
             recordStartingAdd = memLocation;
         }
         if (textRecordLine.length() + opCode.length() > 60) {
             generateTextRecord();
-            addTextRecordInstruction(opCode,memLocation);
+            addTextRecordInstruction(opCode,memLocation,stoi(memLocation));
         } else {
             for (int i=0; i<opCode.length();i++){
                 if (opCode[i]<=32){
@@ -90,16 +91,37 @@ public:
 
 public:
 
-    string generateHeaderString(string programName, int startAddress, int endAddress) {
-        string startAdd = to_string(startAddress);
-        int length = endAddress;
-        string lengthStr = to_string(length);
+    string generateHeaderString(string programName, string startAddress, string endAddress) {
+        string startAdd = startAddress;
+        string lengthStr = endAddress;
+        string tempStr;
+        char space = ' ';
 
-        while (programName.size() < 6) {
-            programName += ' ';
-        }
 
-        headerString = "H" + programName + startAdd + lengthStr;
+
+//        while (programName.size() < 6) {
+//            programName += '_';
+//        }
+       // headerString = "H" + programName + startAdd + lengthStr;
+       stringstream ss;
+        ss<<"H";
+        ss<<setw(6)<<left<<setfill('_')<<programName;
+        ss>>headerString;
+        ss.clear();
+        ss<<setw(6)<<right<<setfill('0')<<startAdd;
+        ss>>tempStr;
+        headerString += tempStr;
+        ss.clear();
+        tempStr ="";
+        ss<<setw(6)<<right<<setfill('0')<<lengthStr;
+        ss>>tempStr;
+        headerString += tempStr;
+        ss.clear();
+        tempStr ="";
+
+
+
+
 //        strstream ss;
 //        ss<<"H"<<programName<<setw(6)<<startAdd<<lengthStr;
 //        ss>>headerString;
@@ -108,12 +130,24 @@ public:
     }
 
     string generateDefineString(string name, string address) {
+        string tempString;
+        defineString ="";
 
-        while (name.size() < 6) {
-            name += ' ';
-        }
-
-        defineString = "D" + name + address;
+//        while (name.size() < 6) {
+//            name += ' ';
+//        }
+        stringstream ss;
+        ss<<setw(6)<<left<<setfill('_')<<name;
+        ss>>tempString;
+        ss.clear();
+        defineString+=tempString;
+        tempString="";
+        ss<<setw(6)<<setfill('0')<<right<<address;
+        ss>>tempString;
+        ss.clear();
+        defineString+=tempString;
+        tempString="";
+        //defineString =  name + address;
         return defineString;
     }
 
@@ -121,6 +155,9 @@ public:
         //input string processing
         string processingString;
         string processingSubString;
+        string returnString;
+        string tempString;
+        stringstream ss;
         unsigned short int j = 0; // This is the beginning of a substring [j, ',']
         unsigned short int k = 0; // K is the distance between substrings
         for (int i = 0; i <= inputString.size(); i++) {
@@ -129,14 +166,19 @@ public:
                 //Find the length between j and i
                 k = i - j;
                 processingSubString = inputString.substr(j, k); // Starting at J create a substring for k length
-                while (processingSubString.size() < 6) { //add spaces until the substring is 6 chars in length
-                    processingSubString += ' ';
-                }
-                processingString += processingSubString;// add substring to the final string
+                ss<<setw(6)<<left<<setfill('_')<<processingSubString;
+                ss>>tempString;
+                ss.clear();
+                returnString +=tempString;
+                //cout<<returnString;
+                tempString="";
                 j = i + 1;//start j at the char to the right of the comma
+
             }
         }
-        string returnString = "R" + processingString + "\n";
+        returnString.insert(0,"R");
+        //cout<<returnString;
+
        // cout << endl << returnString << "|Length: " << returnString.length() << endl;
         return returnString;
     }
@@ -152,8 +194,16 @@ public:
 
 
     string generateEndString(int startAddress) {
-        string endString = to_string(startAddress);
-        endString = "E" + endString + "\n";
+        stringstream ss;
+        string tempString;
+        endString = 'E';
+        ss<<setw(6)<<setfill('0')<<startAddress;
+        ss>>tempString;
+        endString+=tempString;
+        ss.clear();
+        tempString="";
+        //endString = "E" + endString + "\n";
+        endString+='\n';
         return endString;
     }
 
