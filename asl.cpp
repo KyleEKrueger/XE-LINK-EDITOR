@@ -46,7 +46,33 @@ bool DEBUG = true;
 #include <stdlib.h>
 #include <cstring>
 #include <map>
+void processArgument(ModificationRecord mainMod,vector<string> refSymbols,string memLocation, string argumentContents, bool extendedFormat,string ctrlSectName){
+    bool isAddition = true;
+    //Check argument for refrence symbols
+    unsigned short int lBound,rBound;
+    string tempString;
+    lBound = 0;
+    for (int i=0;i<argumentContents.length();i++){
+        while(argumentContents[i]>=48 && argumentContents[i]<=122){ //Checks to see if argument contents is a number or letter
+            tempString+=argumentContents[i];
+            i++;
+        }
+        if (tempString!=""){
+            //gain depression oWo
+            for(int j=0; j<refSymbols.size();j++){
+                if(tempString.compare(refSymbols[j])){
+                    mainMod.generateModificationRecord(memLocation,refSymbols[j],extendedFormat,isAddition);
+                }
+            }
+        }
+    }
 
+    //If contains ref symbols, then brtually murder the underscores
+    if (extendedFormat){
+        mainMod.generateModificationRecord(memLocation,ctrlSectName,extendedFormat,isAddition);
+        //Build a mod record
+    }
+}
 
 int main(int argc, char **argv) {
 //Check for arguments
@@ -73,11 +99,13 @@ int main(int argc, char **argv) {
         string memLocation;
         string ctrlName;
         string symContents;
-        string testes;
+        string extRefString;
         string directiveContents;
         string argumentContents;
         TextRecord mainText;
+        vector<string> refSymbols;
         ObjectFile mainOBJ;
+        ModificationRecord mainMod;
         char argumentMod;
         string fileName = argv[i]; //Generate the obj file name;
         fileName = fileName.erase(fileName.size() - 3, 3) + "obj";
@@ -164,7 +192,25 @@ int main(int argc, char **argv) {
             //ASSEMBLER DIRECTIVES: START, END, BYTE, WORD, RESB, RESW
 
             if (directiveContents == "EXTREF") { // Handling the Assembler Directive EXTREF
-                testes = objFile.generateReferString(argumentContents);
+                extRefString = objFile.generateReferString(argumentContents);
+                //Processing for Modification Records
+
+                string tempString;
+                for (int iR = 1; iR < extRefString.length(); iR+=6) {
+                    int diffOfiandLen;
+                    if (extRefString.length() - iR < 6) {
+                        diffOfiandLen = extRefString.length() - iR;
+                    } else {
+                        diffOfiandLen = 6;
+                    }
+                    for (int jR = 0; jR < diffOfiandLen; jR++) {
+                        if (extRefString[iR + jR] != '_') {
+                            tempString += extRefString[iR + jR];
+                        }
+                        refSymbols.push_back(tempString);
+                        tempString = "";
+                    }
+                }
 
             }
             else if (directiveContents == "EXTDEF") {
@@ -200,11 +246,11 @@ int main(int argc, char **argv) {
                 ctrlName = symContents;
                 mainESTAB.ESTABtest.at(mainESTAB.ESTABrows - 1).Address = strtAdd;
             }
-            //EOF processing, generate End record
-           else if (directiveContents == "C'EOF'") {
+                //EOF processing, generate End record
+            else if (directiveContents == "C'EOF'") {
                 mainESTAB.endControlSection(i, memLocation);
                 endAdd = strtol(&memLocation[0], nullptr,16);
-               // cout<<endl<<"END ADD: "<<endAdd<<endl;
+                // cout<<endl<<"END ADD: "<<endAdd<<endl;
             }
             else if (directiveContents == "RESW"){
                 mainText.generateTextRecord();
@@ -227,9 +273,20 @@ int main(int argc, char **argv) {
             else{
                 if(mainText.getTextRecordLength()!=0){
                     mainText.generateTextRecord();
-
+                }
+                if (!argumentContents.empty() && !opCode.empty()){
+                    bool argCheck = false;
+                    for (int k=0;k<argumentContents.size();k++){
+                        if (argumentContents[k] >= 65){
+                            argCheck = true;
+                        }
+                        if (argCheck){
+                            processArgument(mainMod,refSymbols,memLocation,argumentContents,extendedFormat,ctrlName);
+                        }
+                    }
                 }
             }
+
             if(symContents!=""){
                 for (int k=0;k<mainESTAB.ESTABrows-1;k++){
                     if (symContents == mainESTAB.ESTABtest.at(k).symName){
@@ -264,25 +321,28 @@ int main(int argc, char **argv) {
             }
         }
         objWriteFile <<std::hex<<objFile.generateHeaderString(ctrlName, to_string(mainESTAB.ESTABtest.at(ctrlSectLine).Address),
-                                                      to_string(mainESTAB.ESTABtest.at(ctrlSectLine).Length))<<endl;
+                                                              to_string(mainESTAB.ESTABtest.at(ctrlSectLine).Length))<<endl;
         //Define Record
         objWriteFile<<"D";
         for (int i = ctrlSectLine;i<mainESTAB.ESTABrows;i++){
             if (mainESTAB.ESTABtest.at(i).isHeader == false && mainESTAB.ESTABtest.at(i).ctrlSection == mainESTAB.ESTABtest.at(ctrlSectLine).ctrlSection){
                 objWriteFile<<objFile.generateDefineString(mainESTAB.ESTABtest.at(i).symName, to_string(mainESTAB.ESTABtest.at(i).Address));
-           }
+            }
         }
         //Refer Record
-        objWriteFile<<endl<<testes;
+        objWriteFile << endl << extRefString;
         //Text Record
         objWriteFile<<endl<<mainText.finalTextRecord;
+        //Modification Record
+        objWriteFile<<mainMod.modRecordContents;
         //End Record
         objWriteFile<<objFile.generateEndString(mainESTAB.ESTABtest.at(ctrlSectLine).Address);
         //My depression
         //oWo
         //
-    objWriteFile.close();
+        objWriteFile.close();
 
     }
     mainESTAB.createESTABfile();
 }
+
