@@ -54,7 +54,7 @@ public:
 
     //Adds an opCode to a text record, generates text record if text record has reached maximum length
     void addTextRecordInstruction(string opCode, string memLocation,int startAddress ) {
-       memLocation = to_string(stoi(memLocation)+startAddress);
+        memLocation = to_string(stoi(memLocation)+startAddress);
 
         if (recordStartingAdd == ""){
             recordStartingAdd = memLocation;
@@ -80,6 +80,40 @@ public:
         return intermString;
     }
 } TextRecord;
+
+typedef class ModificationRecord{
+public:
+    string modRecordContents;
+
+    void generateModificationRecord(string memLocation, string modName, bool extendedFormat,bool isAddition){
+        string modRecordLine = "M";
+        stringstream ss;
+        string tempString;
+        int tempInt = strtol(&memLocation[0], nullptr,16);
+        tempInt++;
+        ss<<tempInt;
+        ss>>std::hex>>tempString;
+        ss.clear();
+        ss<<setw(6)<<setfill('0')<<tempString;
+        modRecordLine+=tempString;
+        tempString="";
+        if(extendedFormat){
+            modRecordLine+="05";
+        }
+        else{
+            modRecordLine+="03";
+        }
+        if (isAddition){
+            modRecordLine+="+";
+        }
+        else{
+            modRecordLine+="-";
+        }
+        modRecordLine+=modName;
+        modRecordContents = modRecordContents+ (modRecordLine+"\n");
+    }
+
+}ModificationRecord;
 typedef struct ObjectFile {
 public:
     string headerString;
@@ -102,8 +136,8 @@ public:
 //        while (programName.size() < 6) {
 //            programName += '_';
 //        }
-       // headerString = "H" + programName + startAdd + lengthStr;
-       stringstream ss;
+        // headerString = "H" + programName + startAdd + lengthStr;
+        stringstream ss;
         ss<<"H";
         ss<<setw(6)<<left<<setfill('_')<<programName;
         ss>>headerString;
@@ -179,7 +213,7 @@ public:
         returnString.insert(0,"R");
         //cout<<returnString;
 
-       // cout << endl << returnString << "|Length: " << returnString.length() << endl;
+        // cout << endl << returnString << "|Length: " << returnString.length() << endl;
         return returnString;
     }
 
