@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
         char argumentMod;
         string fileName = argv[i]; //Generate the obj file name;
         fileName = fileName.erase(fileName.size() - 3, 3) + "obj";
+        ofstream objWriteFile;
+        objWriteFile.open(fileName);
         string opCode;
         ObjectFile objFile;
         bool commentSeen = false, extendedFormat = false;
@@ -261,25 +263,25 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        cout <<std::hex<<objFile.generateHeaderString(ctrlName, to_string(mainESTAB.ESTABtest.at(ctrlSectLine).Address),
+        objWriteFile <<std::hex<<objFile.generateHeaderString(ctrlName, to_string(mainESTAB.ESTABtest.at(ctrlSectLine).Address),
                                                       to_string(mainESTAB.ESTABtest.at(ctrlSectLine).Length))<<endl;
         //Define Record
-        cout<<"D";
+        objWriteFile<<"D";
         for (int i = ctrlSectLine;i<mainESTAB.ESTABrows;i++){
             if (mainESTAB.ESTABtest.at(i).isHeader == false && mainESTAB.ESTABtest.at(i).ctrlSection == mainESTAB.ESTABtest.at(ctrlSectLine).ctrlSection){
-                cout<<objFile.generateDefineString(mainESTAB.ESTABtest.at(i).symName, to_string(mainESTAB.ESTABtest.at(i).Address));
+                objWriteFile<<objFile.generateDefineString(mainESTAB.ESTABtest.at(i).symName, to_string(mainESTAB.ESTABtest.at(i).Address));
            }
         }
         //Refer Record
-        cout<<endl<<testes;
+        objWriteFile<<endl<<testes;
         //Text Record
-        cout<<endl<<mainText.finalTextRecord;
+        objWriteFile<<endl<<mainText.finalTextRecord;
         //End Record
-        cout<<objFile.generateEndString(mainESTAB.ESTABtest.at(ctrlSectLine).Address);
+        objWriteFile<<objFile.generateEndString(mainESTAB.ESTABtest.at(ctrlSectLine).Address);
         //My depression
         //oWo
         //
-
+    objWriteFile.close();
 
     }
     mainESTAB.createESTABfile();
