@@ -74,7 +74,7 @@ public:
                 ss.clear();
                 ss.flush();
                 ESTABtest.at(i).Length = iAddress + iEndingAddress; // Value calculated will be in DEC format
-               // cout<<"ENDCONTROLSECTION: The length calculated for control section "<<ctrlSection<<" is "<<std::hex<<ESTABtest.at(i).Length<<endl;
+                // cout<<"ENDCONTROLSECTION: The length calculated for control section "<<ctrlSection<<" is "<<std::hex<<ESTABtest.at(i).Length<<endl;
 
             }
         }
@@ -93,10 +93,10 @@ public:
                     writeFile <<flush<< "||";
                 }
                 else{
-                writeFile << setfill(' ') << setw(6) << ESTABtest.at(i).ctrlSection;
-                writeFile <<flush<< "||";
-                writeFile << setfill(' ') << setw(6) << right << ESTABtest.at(i).symName;
-                writeFile << flush<<"||";
+                    writeFile << setfill(' ') << setw(6) << ESTABtest.at(i).ctrlSection;
+                    writeFile <<flush<< "||";
+                    writeFile << setfill(' ') << setw(6) << right << ESTABtest.at(i).symName;
+                    writeFile << flush<<"||";
                 }
                 writeFile << setfill('0') << setw(6) <<std::hex<< ESTABtest.at(i).Address;
                 writeFile <<flush<< "||";
