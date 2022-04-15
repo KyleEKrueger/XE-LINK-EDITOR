@@ -85,7 +85,7 @@ typedef class ModificationRecord{
 public:
     string modRecordContents;
 
-    void generateModificationRecord(string memLocation, string modName, bool extendedFormat,bool isAddition){
+    string generateModificationRecord(string memLocation, string modName, bool extendedFormat,bool isAddition){
         string modRecordLine = "M";
         stringstream ss;
         string tempString;
@@ -95,6 +95,8 @@ public:
         ss>>std::hex>>tempString;
         ss.clear();
         ss<<setw(6)<<setfill('0')<<tempString;
+        ss>>tempString;
+        ss.clear();
         modRecordLine+=tempString;
         tempString="";
         if(extendedFormat){
@@ -110,7 +112,9 @@ public:
             modRecordLine+="-";
         }
         modRecordLine+=modName;
-        modRecordContents = modRecordContents+ (modRecordLine+"\n");
+        modRecordLine+='\n';
+        cout<<modRecordLine;
+        return modRecordLine;
     }
 
 }ModificationRecord;
