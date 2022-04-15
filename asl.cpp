@@ -46,7 +46,7 @@ bool DEBUG = true;
 #include <stdlib.h>
 #include <cstring>
 #include <map>
-void processArgument(ModificationRecord mainMod,vector<string> refSymbols,string memLocation, string argumentContents, bool extendedFormat,string ctrlSectName){
+string processArgument(ModificationRecord mainMod,vector<string> refSymbols,string memLocation, string argumentContents, bool extendedFormat,string ctrlSectName){
     bool isAddition = true;
     //Check argument for refrence symbols
     unsigned short int lBound,rBound;
@@ -60,8 +60,8 @@ void processArgument(ModificationRecord mainMod,vector<string> refSymbols,string
         if (tempString!=""){
             //gain depression oWo
             for(int j=0; j<refSymbols.size();j++){
-                if(tempString.compare(refSymbols[j])){
-                    mainMod.generateModificationRecord(memLocation,refSymbols[j],extendedFormat,isAddition);
+                if(tempString == refSymbols[j]){
+                    return mainMod.generateModificationRecord(memLocation,refSymbols[j],extendedFormat,isAddition);
                 }
             }
         }
@@ -69,7 +69,7 @@ void processArgument(ModificationRecord mainMod,vector<string> refSymbols,string
 
     //If contains ref symbols, then brtually murder the underscores
     if (extendedFormat){
-        mainMod.generateModificationRecord(memLocation,ctrlSectName,extendedFormat,isAddition);
+        return mainMod.generateModificationRecord(memLocation,ctrlSectName,extendedFormat,true);
         //Build a mod record
     }
 }
@@ -84,6 +84,7 @@ int main(int argc, char **argv) {
     int strtAdd;
     int endAdd = 0;
     string lastAdd;
+    string mainModRecord;
     ESTAB mainESTAB(startingProgAddr);
     for (int i = 1; i < argc; i++) {
 
@@ -94,11 +95,13 @@ int main(int argc, char **argv) {
         } else {
             strtAdd = endAdd;
         }
+        mainModRecord = "";
         std::string line;
         std::ifstream readingFile{argv[i]};
         string memLocation;
         string ctrlName;
         string symContents;
+        string tempModLine;
         string extRefString;
         string directiveContents;
         string argumentContents;
@@ -207,9 +210,10 @@ int main(int argc, char **argv) {
                         if (extRefString[iR + jR] != '_') {
                             tempString += extRefString[iR + jR];
                         }
-                        refSymbols.push_back(tempString);
-                        tempString = "";
+
                     }
+                    refSymbols.push_back(tempString);
+                    tempString = "";
                 }
 
             }
@@ -274,23 +278,40 @@ int main(int argc, char **argv) {
                 if(mainText.getTextRecordLength()!=0){
                     mainText.generateTextRecord();
                 }
-                if (!argumentContents.empty() && !opCode.empty()){
-                    bool argCheck = false;
-                    for (int k=0;k<argumentContents.size();k++){
-                        if (argumentContents[k] >= 65){
-                            argCheck = true;
-                        }
-                        if (argCheck){
-                            processArgument(mainMod,refSymbols,memLocation,argumentContents,extendedFormat,ctrlName);
+
+            }
+            if (!argumentContents.empty()&&directiveContents!="EXTREF"&&directiveContents!="EXTDEF"){
+                bool argCheck = false;
+                for (int k=0;k<argumentContents.size()-1;k++){
+                    if (argumentContents[k] >= 65){
+                        argCheck = true;
+                    }
+                }
+                if (argCheck){
+
+                    tempModLine = processArgument(mainMod,refSymbols,memLocation,argumentContents,extendedFormat,ctrlName);
+                    if (!tempModLine.empty()) {
+                        if (tempModLine[0] != 'M') {
+                            if (tempModLine.length()<10){
+                                tempModLine="";
+                            }
+                            else {
+                                while (tempModLine[0] != 'M') {
+                                    tempModLine.erase(0, 1);
+                                }
+
+                            }
+
                         }
                     }
+                    mainModRecord += tempModLine;
                 }
             }
 
             if(symContents!=""){
-                for (int k=0;k<mainESTAB.ESTABrows-1;k++){
+                for (int k=0;k<mainESTAB.ESTABrows;k++){
                     if (symContents == mainESTAB.ESTABtest.at(k).symName){
-                        mainESTAB.ESTABtest.at(k).Address = stoi(memLocation);
+                        mainESTAB.ESTABtest.at(k).Address = strtol(&memLocation[0], nullptr,16);
 
                     }
                 }
@@ -334,7 +355,7 @@ int main(int argc, char **argv) {
         //Text Record
         objWriteFile<<endl<<mainText.finalTextRecord;
         //Modification Record
-        objWriteFile<<mainMod.modRecordContents;
+        objWriteFile<<mainModRecord;
         //End Record
         objWriteFile<<objFile.generateEndString(mainESTAB.ESTABtest.at(ctrlSectLine).Address);
         //My depression
