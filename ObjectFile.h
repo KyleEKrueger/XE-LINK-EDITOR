@@ -89,7 +89,10 @@ public:
         string modRecordLine = "M";
         stringstream ss;
         string tempString;
-        int tempInt = strtol(&memLocation[0], nullptr,16);
+        int tempInt;
+        if (memLocation!="") {
+            tempInt = strtol(&memLocation[0], nullptr, 16);
+        }
         tempInt++;
         ss<<tempInt;
         ss>>std::hex>>tempString;
@@ -113,7 +116,7 @@ public:
         }
         modRecordLine+=modName;
         modRecordLine+='\n';
-        cout<<modRecordLine;
+        //cout<<modRecordLine;
         return modRecordLine;
     }
 
