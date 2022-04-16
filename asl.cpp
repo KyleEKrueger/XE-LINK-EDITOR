@@ -38,14 +38,11 @@
 */
 
 //FOR ANY DEBUGING FUNCTIONS, surround it in an if statement and change this to true
-bool DEBUG = true;
 
 #include "ESTAB.h"
 #include "ObjectFile.h"
 #include <string>
 #include <stdlib.h>
-#include <cstring>
-#include <map>
 string processArgument(ModificationRecord mainMod,vector<string> refSymbols,string memLocation, string argumentContents, bool extendedFormat,string ctrlSectName){
     bool isAddition = true;
     //Check argument for refrence symbols
@@ -58,7 +55,6 @@ string processArgument(ModificationRecord mainMod,vector<string> refSymbols,stri
             i++;
         }
         if (tempString!=""){
-            //gain depression oWo
             for(int j=0; j<refSymbols.size();j++){
                 if(tempString == refSymbols[j]){
                     return mainMod.generateModificationRecord(memLocation,refSymbols[j],extendedFormat,isAddition);
@@ -72,6 +68,7 @@ string processArgument(ModificationRecord mainMod,vector<string> refSymbols,stri
         return mainMod.generateModificationRecord(memLocation,ctrlSectName,extendedFormat,true);
         //Build a mod record
     }
+    return "";
 }
 
 int main(int argc, char **argv) {
@@ -128,7 +125,7 @@ int main(int argc, char **argv) {
                 if (line[j] == '.') { // check for comments
                     commentSeen = true;
                 }
-                if (commentSeen == true) {
+                if (commentSeen) {
                     //continue;
                 } else {
                     if (j >= 0 && j <= 3) {// Fetching the memory address
@@ -261,7 +258,7 @@ int main(int argc, char **argv) {
 
             }
             else if (directiveContents == "BASE"){
-
+                //continue
             }
 
             else if (opCode != ""&&directiveContents!="C'EOF'") {
@@ -308,11 +305,12 @@ int main(int argc, char **argv) {
                 }
             }
 
-            if(symContents!=""){
-                for (int k=0;k<mainESTAB.ESTABrows;k++){
+            if(!symContents.empty()){
+                for (int k=0;k<=mainESTAB.ESTABrows-1;k++){
                     if (symContents == mainESTAB.ESTABtest.at(k).symName){
-                        mainESTAB.ESTABtest.at(k).Address = strtol(&memLocation[0], nullptr,16);
-
+                        if (memLocation!="") {
+                            mainESTAB.ESTABtest.at(k).Address = strtol(&memLocation[0], nullptr, 16);
+                        }
                     }
                 }
             }
