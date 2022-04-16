@@ -1,3 +1,10 @@
+/*Kyle Krueger and Brett Gallagher
+cssc0413, cssc0423
+CS530, Spring 2022
+Assignment 2
+ESTAB.h
+*/
+
 #include <iostream>
 #include <vector>
 #include <strstream>
@@ -5,32 +12,14 @@
 #include <iomanip>
 using namespace std;
 
-/*
-* 2-D Array: [Control Section][Variable in Control Section]
-* CTRLSC||SYMNAM||ADDRES||LENGTH
-*
-ADD   ||  	||000000||002F06
-  	||Count ||000020||
-  	||Table ||000023||
-  	||Table2||001793||
-Write ||SYMNAM||ADDRES||LENGTH
-CTRLSC||SYMNAM||ADDRES||LENGTH
-*/
-
-//char[argc][2] char[30]
-
 typedef class ESTABEntry {
 public:
     //All entries in the sym tab should be 6 chars long
     bool isHeader = false; // if this is true, then symname will be the name of the control section
     unsigned short int ctrlSection = 0; // int that incriments with each control section
-    string symName = "NULL";
-    int Address = 0;
-    int Length = 0;
-
-
-    //Prints the contents of a row of the ESTAB
-//public:
+    string symName = "NULL";            //string to store symbol name
+    int Address = 0;                    //int to store address
+    int Length = 0;                     //int to store length of section
 
 }ESTABEntry;
 
@@ -48,7 +37,7 @@ public:
     //    	If EOF Set header length to EOF Address - Header Address Increment ctrlsection variable +1
 
     ESTAB(int progADDR){
-        ctrlSectionEnd = progADDR;
+        ctrlSectionEnd = progADDR;      //initialize estab, program address is where we load the program and end the previous section
     }
 
     //Creates a new ESTABEntry at the back of the array (Bottom of the list)
@@ -81,20 +70,22 @@ public:
     }
 
     void createESTABfile(){
+        
         //put code for opening file here
         ofstream writeFile;
         writeFile.open("ESTAB.st");
         if (writeFile.is_open()){
             for (int i = 0; i < ESTABrows; i++) {
+                //format and print out the ESTAB for header
                 if (ESTABtest.at(i).isHeader) {
                     writeFile << setfill(' ') << setw(6) << right << ESTABtest.at(i).symName;
                     writeFile <<flush<< "||";
                     writeFile << setfill(' ') << setw(8); //Why is this 8? IDK
                     writeFile <<flush<< "||";
-                    writeFile << setfill('0') << setw(6) <<std::hex<< ESTABtest.at(i).Address;
+                    writeFile << setfill('0') << setw(6) <<  std::hex  << ESTABtest.at(i).Address;
                     writeFile <<flush<< "||";
                     writeFile << setfill('0') << setw(6) << std::hex << ESTABtest.at(i).Length;
-                }
+                } //format and print out the ESTAB
                 else{
                     writeFile << setfill(' ') << setw(6) << ESTABtest.at(i).ctrlSection;
                     writeFile <<flush<< "||";
@@ -106,20 +97,15 @@ public:
                         writeFile << setfill(' ') << setw(6) << std::hex << ESTABtest.at(i).Length;
                     }
                 }
-
                 writeFile <<std::flush<< std::endl;
-                //Put code for writing to file here
-                //ESTABtest.at(i).ctrSection;
             }
-            //put code for closing file here
-            cout<<"File Created: ESTAB.st";
         } else{
-            cout << "\nError opening ESTAB.st\n";
+            cout << "\nError opening ESTAB.st\n";       //tell user about file error
         }
-        writeFile.close();
+        writeFile.close();                              //close file
     }
 
-    int getPreviousEndAddress(){
+    int getPreviousEndAddress(){                        //get the previous end address
         int lastCS = ESTABtest.at(ESTABrows-1).ctrlSection;
             for (int i = 0; i < ESTABrows; i++) {
                 if (ESTABtest.at(i).isHeader && ESTABtest.at(i).ctrlSection == lastCS - 1) {
@@ -130,12 +116,3 @@ public:
     }
 
 } ESTAB;
-
-
-
-
-
-
-
-
-
