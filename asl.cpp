@@ -224,7 +224,6 @@ int main(int argc, char **argv) {
             else if (directiveContents == "C'EOF'") {
                 mainESTAB.endControlSection(i, memLocation);
                 endAdd = strtol(&memLocation[0], nullptr,16);
-                 cout<<endl<<"END ADD: "<<endAdd<<endl;
             }
             else if (directiveContents == "RESW"){ // RESW handling, skip this record and generate a text file from the lines above
                 mainText.generateTextRecord();
