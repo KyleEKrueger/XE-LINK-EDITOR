@@ -251,7 +251,7 @@ int main(int argc, char **argv) {
             else if (directiveContents == "C'EOF'") {
                 mainESTAB.endControlSection(i, memLocation);
                 endAdd = strtol(&memLocation[0], nullptr,16);
-                // cout<<endl<<"END ADD: "<<endAdd<<endl;
+                 cout<<endl<<"END ADD: "<<endAdd<<endl;
             }
             else if (directiveContents == "RESW"){
                 mainText.generateTextRecord();
@@ -314,9 +314,6 @@ int main(int argc, char **argv) {
                     }
                 }
             }
-            //std::cout << line << endl;
-            //std::cout <<endl<<"REVISED FILE NAME: "<<fileName<<endl;
-            // std::cout<< "MEM: "<<memLocation<<endl<<"SYM: "<<symContents<<endl<<"EXT: "<<extendedFormat<<endl<<"DIR: "<<directiveContents<<endl<<"AMD: "<<argumentMod<<endl<<"ARG: "<<argumentContents<<endl<<"OPC: "<<opCode<<endl<<endl;
 
             //Resetting Line contents after Processing
             memLocation = "";
