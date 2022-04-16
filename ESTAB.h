@@ -73,7 +73,7 @@ public:
                 ss>>iEndingAddress;
                 ss.clear();
                 ss.flush();
-                ESTABtest.at(i).Length = iAddress + iEndingAddress; // Value calculated will be in DEC format
+                ESTABtest.at(i).Length = iEndingAddress - iAddress; // Value calculated will be in DEC format
                 // cout<<"ENDCONTROLSECTION: The length calculated for control section "<<ctrlSection<<" is "<<std::hex<<ESTABtest.at(i).Length<<endl;
 
             }
@@ -91,16 +91,22 @@ public:
                     writeFile <<flush<< "||";
                     writeFile << setfill(' ') << setw(8); //Why is this 8? IDK
                     writeFile <<flush<< "||";
+                    writeFile << setfill('0') << setw(6) <<std::hex<< ESTABtest.at(i).Address;
+                    writeFile <<flush<< "||";
+                    writeFile << setfill('0') << setw(6) << std::hex << ESTABtest.at(i).Length;
                 }
                 else{
                     writeFile << setfill(' ') << setw(6) << ESTABtest.at(i).ctrlSection;
                     writeFile <<flush<< "||";
                     writeFile << setfill(' ') << setw(6) << right << ESTABtest.at(i).symName;
                     writeFile << flush<<"||";
+                    writeFile << setfill('0') << setw(6) <<std::hex<< ESTABtest.at(i).Address;
+                    writeFile <<flush<< "||";
+                    if (ESTABtest.at(i).Length != 0) {
+                        writeFile << setfill(' ') << setw(6) << std::hex << ESTABtest.at(i).Length;
+                    }
                 }
-                writeFile << setfill('0') << setw(6) <<std::hex<< ESTABtest.at(i).Address;
-                writeFile <<flush<< "||";
-                writeFile << setfill('0') << setw(6) << std::hex << ESTABtest.at(i).Length;
+
                 writeFile <<std::flush<< std::endl;
                 //Put code for writing to file here
                 //ESTABtest.at(i).ctrSection;
@@ -115,14 +121,12 @@ public:
 
     int getPreviousEndAddress(){
         int lastCS = ESTABtest.at(ESTABrows-1).ctrlSection;
-        if(ESTABrows>0 && lastCS>0) {
             for (int i = 0; i < ESTABrows; i++) {
                 if (ESTABtest.at(i).isHeader && ESTABtest.at(i).ctrlSection == lastCS - 1) {
                     return ESTABtest.at(i).Address + ESTABtest.at(i).Length;
                 }
             }
-        }
-        else return 0;
+        return 0;
     }
 
 } ESTAB;
