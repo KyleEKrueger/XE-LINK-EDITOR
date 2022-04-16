@@ -1,48 +1,19 @@
 /* XE LINK EDITOR
-* Authors: Kyle Krueger & Brett Gallagher
-* Created at San Diego State University for CS530 System Software Spring 2022
+* Kyle Krueger and Brett Gallagher
+    cssc0413, cssc0423
+    CS530, Spring 2022
+    Assignment 2
+    asl.cpp
 *
 * Description:
 * The program will open assembler listing file(s) from the command line and perform
 * the required steps to translate the listing file into an XE executable object file.
-*
-* --- GENERAL TASKS FOR PROJECT ---
-* TODO: Clearly define work needed
-* TODO: Divide work up, or develop a strategy to complete assignment
-*
-* --- TASKS FOR FILE HANDLING ---
-* TODO: Create a way to test for valid input files (Check for args(DONE), MemoryCheck)
-* TODO: Create a way to accept multiple input files (can we create a method to input files and process one file at a time?)
-* TODO:
-*
-* --- TASKS FOR LINKER RELATED FUNCTIONS ---
-* TODO: Generate ESTAB
-* TODO: Memory Check
-* TODO: Program Pass 1
-* TODO: Program Pass 2
-* TODO:
-*
-* --- ESTAB FORMAT ---
-* CTRLSC||SYMNAM||ADDRES||LENGTH
-* Control Section should be only declared once at the start, and then left null for the symbols declared underneath
-* Symname should be added when the symbol is defined with EXTDEF directives
-* ADDRESS will be the defined with the symbol, and for the control sections, it will be calculated
-* Length will be only used for control sections
-*
-* ADDRESS = Control Section Starting Address + Local Address in control sections
-*
-* How to handle the ESTAB? I'm not so sure
-*
-*
-*
 */
-
-//FOR ANY DEBUGING FUNCTIONS, surround it in an if statement and change this to true
-
 #include "ESTAB.h"
 #include "ObjectFile.h"
 #include <string>
 #include <stdlib.h>
+//Takes in parsed information in order to generate modification records for a given line if necessary
 string processArgument(ModificationRecord mainMod,vector<string> refSymbols,string memLocation, string argumentContents, bool extendedFormat,string ctrlSectName){
     bool isAddition = true;
     //Check argument for refrence symbols
@@ -56,14 +27,14 @@ string processArgument(ModificationRecord mainMod,vector<string> refSymbols,stri
         }
         if (tempString!=""){
             for(int j=0; j<refSymbols.size();j++){
-                if(tempString == refSymbols[j]){
+                if(tempString == refSymbols[j]){ // check to see if the argument is a referenced symbol, if so generate a modification record
                     return mainMod.generateModificationRecord(memLocation,refSymbols[j],extendedFormat,isAddition);
                 }
             }
         }
     }
 
-    //If contains ref symbols, then brtually murder the underscores
+    //If contains ref symbols, then delete the underscores
     if (extendedFormat){
         return mainMod.generateModificationRecord(memLocation,ctrlSectName,extendedFormat,true);
         //Build a mod record
@@ -77,6 +48,7 @@ int main(int argc, char **argv) {
         std::cout << "PROGRAM TERMINATED: ARGUMENTS NOT FOUND\n";
         return 0;
     }
+    //Declarations for variables used in multiple and/or in between files
     int startingProgAddr = 0;
     int strtAdd;
     int endAdd = 0;
@@ -92,8 +64,10 @@ int main(int argc, char **argv) {
         } else {
             strtAdd = endAdd;
         }
+        //Declarations for variables used per file
         mainModRecord = "";
         std::string line;
+        std::string addressMemCheck;
         std::ifstream readingFile{argv[i]};
         string memLocation;
         string ctrlName;
@@ -104,6 +78,7 @@ int main(int argc, char **argv) {
         string argumentContents;
         TextRecord mainText;
         vector<string> refSymbols;
+        vector<string> memAddressses;
         ObjectFile mainOBJ;
         ModificationRecord mainMod;
         char argumentMod;
@@ -114,18 +89,16 @@ int main(int argc, char **argv) {
         string opCode;
         ObjectFile objFile;
         bool commentSeen = false, extendedFormat = false;
-
+        //Loads the control section at the starting address
         mainText.ctrlLoadAdd = strtAdd;
 
         while (std::getline(readingFile, line)) {
-            //GETTING THE LINE CONTENTS
-            //Create code to extract string of the file name
-
+            //GETLINE
             for (int j = 0; j < line.length(); j++) {
                 if (line[j] == '.') { // check for comments
                     commentSeen = true;
                 }
-                if (commentSeen) {
+                if (commentSeen) { // If a comment is seen, skip all processing from that point until the rest of the line
                     //continue;
                 } else {
                     if (j >= 0 && j <= 3) {// Fetching the memory address
@@ -134,11 +107,12 @@ int main(int argc, char **argv) {
                         }
                         else {
                             memLocation += line[j];
+                            memAddressses.push_back(memLocation); // store memory address to a stack for memory check
                         }
                     }
                     if (j >= 8 && j <= 13) {// Fetching the Symbol name
                         if (line[j] == ' ') {
-                            //continue;       //go to top of for loop to ignore spaces
+                            //continue
                         } else {
                             symContents += line[j];
                         }
@@ -149,13 +123,13 @@ int main(int argc, char **argv) {
                         } else if (line[j] == '+') {
                             extendedFormat = true;
                         } else if (line[j] == '=') {
-                            //Check to see if the characters are end of file. AWAITING PROFESSOR RESPONSE TO EMAIL
+                            // 
 
                         }
                     }
                     if (j >= 17 && j <= 22) {//Fetching the Directive
                         if (line[j] == ' ') {
-                            //continue;       //go to top of for loop to ignore spaces
+                            //continue
                         } else {
                             directiveContents += line[j];
                         }
@@ -171,7 +145,7 @@ int main(int argc, char **argv) {
                             argumentContents += line[j];
                         }
                     }
-                    if (j >= 51 && j <= 58) {//Fetching the opCodef
+                    if (j >= 51 && j <= 58) {//Fetching the opCode
                         if (line[j] == ' ') {
                             //continue;
                         } else {
@@ -180,8 +154,11 @@ int main(int argc, char **argv) {
                     }
                 }
             }
-
-            //Processing the Line
+            //*************
+            //*PROCESSLINE*
+            //*************
+            //
+            //
             //Generating Modification Records:
             /*
              * Any time a symbol is encountered:
@@ -194,7 +171,7 @@ int main(int argc, char **argv) {
             if (directiveContents == "EXTREF") { // Handling the Assembler Directive EXTREF
                 extRefString = objFile.generateReferString(argumentContents);
                 //Processing for Modification Records
-
+                //Create a vector of reference strings to use for generating modification records down below
                 string tempString;
                 for (int iR = 1; iR < extRefString.length(); iR+=6) {
                     int diffOfiandLen;
@@ -214,15 +191,15 @@ int main(int argc, char **argv) {
                 }
 
             }
-            else if (directiveContents == "EXTDEF") {
+            else if (directiveContents == "EXTDEF") {// EXTDEF handling
                 //Look at the arguments
                 unsigned short int lBound = 0, boundDiff = 0;
-                for (int k = 0; k <= argumentContents.length(); k++) {
+                for (int k = 0; k <= argumentContents.length(); k++) {//Parsing
                     if (argumentContents[k] == ',' || k == argumentContents.length()) {
                         boundDiff = k - lBound;
                         string subArg = "";
                         subArg = argumentContents.substr(lBound, boundDiff);
-                        if (subArg.at(subArg.length() - 1) <= 32) {
+                        if (subArg.at(subArg.length() - 1) <= 32) { //Erase any unimportant characters
                             subArg.erase(subArg.length() - 1, 1);
                         }
                         //Add a new row to this ctrl section's ESTAB w/o mem location
@@ -232,11 +209,7 @@ int main(int argc, char **argv) {
                         mainESTAB.ESTABtest.at(mainESTAB.ESTABrows - 1).ctrlSection = i;
                         lBound = k + 1;
                     }
-
                 }
-                //Seperate the arguments (commas will seperate them, as well as the final space)
-                //Add arguments to a Symbol Map
-                //Generate new entries into the ESTAB
             }
             else if (directiveContents == "START") {
                 //Initialize a new control section row in ESTAB and include everything but length
@@ -253,7 +226,7 @@ int main(int argc, char **argv) {
                 endAdd = strtol(&memLocation[0], nullptr,16);
                  cout<<endl<<"END ADD: "<<endAdd<<endl;
             }
-            else if (directiveContents == "RESW"){
+            else if (directiveContents == "RESW"){ // RESW handling, skip this record and generate a text file from the lines above
                 mainText.generateTextRecord();
 
             }
@@ -261,31 +234,33 @@ int main(int argc, char **argv) {
                 //continue
             }
 
-            else if (opCode != ""&&directiveContents!="C'EOF'") {
-
+            else if (opCode != ""&&directiveContents!="C'EOF'") {//Processing OpCodes for text records
+                //Generate Text record for this line
                 mainText.addTextRecordInstruction(opCode,memLocation,strtAdd);
                 if (mainText.recordStartingAdd == "") {
                     if (memLocation != "") {
+                        //We use strtol alot in this program, here is one of its uses. To convert a string to a base 10 int
                         mainText.recordStartingAdd = strtol(&memLocation[0], nullptr, 10) + strtAdd;
                     }
                 }
 
             }
-            else{
+            else{ //We have reached a point in code where we need to generate a text record for all other conditions have been met
                 if(mainText.getTextRecordLength()!=0){
                     mainText.generateTextRecord();
                 }
 
             }
+            //If there is an argument content that is not being externally defined or referenced, process the argument and check for symbols
             if (!argumentContents.empty()&&directiveContents!="EXTREF"&&directiveContents!="EXTDEF"){
                 bool argCheck = false;
                 for (int k=0;k<argumentContents.size()-1;k++){
-                    if (argumentContents[k] >= 65){
+                    if (argumentContents[k] >= 65){//Checks if there is a non numerical value stored within arguments for further processing
                         argCheck = true;
                     }
                 }
                 if (argCheck){
-
+                    //process the argument, and generate a modification record
                     tempModLine = processArgument(mainMod,refSymbols,memLocation,argumentContents,extendedFormat,ctrlName);
                     if (!tempModLine.empty()) {
                         if (tempModLine[0] != 'M') {
@@ -305,7 +280,7 @@ int main(int argc, char **argv) {
                 }
             }
 
-            if(!symContents.empty()){
+            if(!symContents.empty()){ // if there is a symbol declaration, check to see if it exists in the ESTAB
                 for (int k=0;k<=mainESTAB.ESTABrows-1;k++){
                     if (symContents == mainESTAB.ESTABtest.at(k).symName){
                         if (memLocation!="") {
@@ -353,12 +328,22 @@ int main(int argc, char **argv) {
         objWriteFile<<mainModRecord;
         //End Record
         objWriteFile<<objFile.generateEndString(mainESTAB.ESTABtest.at(ctrlSectLine).Address);
-        //My depression
-        //oWo
-        //
-        objWriteFile.close();
+       
+        objWriteFile.close();           //close file after writing
 
+        while (!memAddressses.empty()){
+            string addressToCheck = memAddressses[memAddressses.size() - 1];        //
+            memAddressses.pop_back();
+            int iAddMemCheck = strtol(&addressToCheck[0], nullptr, 10);
+            if(iAddMemCheck < startingProgAddr || iAddMemCheck > endAdd){
+                cout << "MEMCHECK: Address is out of bounds.";
+                return 0;
+            }
+            
+        }
+        
     }
+    //reset argv to 1, while loop to read in lines, compare each address to the start and end address
+    //increment argv to go to next file to read in
     mainESTAB.createESTABfile();
 }
-
