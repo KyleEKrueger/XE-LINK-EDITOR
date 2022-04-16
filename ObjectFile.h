@@ -1,10 +1,17 @@
+/*
+Kyle Krueger and Brett Gallagher
+cssc0413, cssc0423
+CS530, Spring 2022
+Assignment 2
+ObjectFile.h
+*/
+
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <iomanip>
 #include <algorithm>
 #include <sstream>
-
 
 using namespace std;
 
@@ -25,6 +32,7 @@ public:
     string generateTextRecord() {
         //textRecordLine
         string outputString;
+        //Build the text record by copying textRecordLine into a string stream for formatting
         if (textRecordLine.length()!=0) {
             outputString = "T";
             string intermString;
@@ -40,12 +48,11 @@ public:
             outputString += intermString;
             intermString = "";
             outputString += textRecordLine;
-
-            //cout << outputString << endl;//eventually add to something else
             textRecordLine = "";
             outputString+='\n';
             finalTextRecord+=outputString;
         }
+        //reset the record starting address, and return the processed text record
         recordStartingAdd = "";
         return finalTextRecord;
 
@@ -56,7 +63,7 @@ public:
     void addTextRecordInstruction(string opCode, string memLocation,int startAddress ) {
         memLocation = to_string(stoi(memLocation)+startAddress);
 
-        if (recordStartingAdd == ""){
+        if (recordStartingAdd == ""){//upon the first text record entry, store its starting address to the text record
             recordStartingAdd = memLocation;
         }
         if (textRecordLine.length() + opCode.length() > 60) {
@@ -72,28 +79,26 @@ public:
         }
     }
 
-    string stringToStringDecToHex(string inputString){
-        stringstream ss;
-        string intermString;
-        ss<<std::hex<<stoi(inputString);
-        ss>>intermString;
-        return intermString;
-    }
+    
 } TextRecord;
 
 typedef class ModificationRecord{
 public:
     string modRecordContents;
-
+    //Generate modification record using the contents of modRecordContents
     string generateModificationRecord(string memLocation, string modName, bool extendedFormat,bool isAddition){
         string modRecordLine = "M";
         stringstream ss;
         string tempString;
         int tempInt;
-        if (memLocation!="") {
+        if (memLocation!="") { // memecheck to check if there is a memory address
             tempInt = strtol(&memLocation[0], nullptr, 16);
         }
+        else {
+            cout<<"MEMCHECK: Memory fault generating Modification record using the symbol "<<modName<<endl;
+        }
         tempInt++;
+        //string stream for processsing output
         ss<<tempInt;
         ss>>std::hex>>tempString;
         ss.clear();
@@ -123,76 +128,58 @@ public:
 }ModificationRecord;
 typedef struct ObjectFile {
 public:
-    string headerString;
-    string defineString;
-    string referString;
-    string textString;
-    string modificationString;
-    string endString;
+    string headerString;        //string to store and print header
+    string defineString;        //string to store and print define
+    string referString;         //string to store and print refer
+    string endString;           //string to store and print end
 
 public:
 
-    string generateHeaderString(string programName, string startAddress, string endAddress) {
+    //create header string to print in object file
+    string generateHeaderString(string programName, string startAddress, string endAddress) {           //take in the program name, the starting address, and the ending address
         string startAdd = startAddress;
         string lengthStr = endAddress;
         string tempStr;
-        char space = ' ';
-
-
-
-//        while (programName.size() < 6) {
-//            programName += '_';
-//        }
-        // headerString = "H" + programName + startAdd + lengthStr;
+        
         stringstream ss;
-        ss<<"H";
+        ss<<"H";                                            //leading H
         ss<<setw(6)<<left<<setfill('_')<<programName;
-        ss>>headerString;
+        ss>>headerString;                                   //add program name to string that will be returned
         ss.clear();
         ss<<setw(6)<<right<<setfill('0')<<startAdd;
         ss>>tempStr;
-        headerString += tempStr;
+        headerString += tempStr;                            //add starting address to string that will be returned
         ss.clear();
         tempStr ="";
         ss<<setw(6)<<right<<setfill('0')<<lengthStr;
         ss>>tempStr;
-        headerString += tempStr;
+        headerString += tempStr;                            //add ending address to string that will be returned
         ss.clear();
         tempStr ="";
-
-
-
-
-//        strstream ss;
-//        ss<<"H"<<programName<<setw(6)<<startAdd<<lengthStr;
-//        ss>>headerString;
-//        ss.clear();
-        return headerString;
+        return headerString;                                //return string of program name + start address + end address
     }
 
-    string generateDefineString(string name, string address) {
+    //create define string to print in object file
+    string generateDefineString(string name, string address) {      //take in the symbol name and address
         string tempString;
         defineString ="";
 
-//        while (name.size() < 6) {
-//            name += ' ';
-//        }
         stringstream ss;
-        ss<<setw(6)<<left<<setfill('_')<<name;
+        ss<<setw(6)<<left<<setfill('_')<<name;                  //add symbol name to string that will be returned
         ss>>tempString;
         ss.clear();
         defineString+=tempString;
         tempString="";
-        ss<<setw(6)<<setfill('0')<<right<<address;
+        ss<<setw(6)<<setfill('0')<<right<<address;              //add address to string that will be returned
         ss>>tempString;
         ss.clear();
         defineString+=tempString;
         tempString="";
-        //defineString =  name + address;
-        return defineString;
+        return defineString;                                    //return string of symbol name + address
     }
 
-    string generateReferString(string inputString) {
+    //create refer string to print in object file
+    string generateReferString(string inputString) {            
         //input string processing
         string processingString;
         string processingSubString;
@@ -211,42 +198,26 @@ public:
                 ss>>tempString;
                 ss.clear();
                 returnString +=tempString;
-                //cout<<returnString;
                 tempString="";
-                j = i + 1;//start j at the char to the right of the comma
+                j = i + 1;      //start j at the char to the right of the comma
 
             }
         }
         returnString.insert(0,"R");
-        //cout<<returnString;
-
-        // cout << endl << returnString << "|Length: " << returnString.length() << endl;
-        return returnString;
+        return returnString;                        //return R + names of referred symbols
     }
 
-    string generateTextString() {
-
-        return "GenerateTestString()";
-    }
-
-    string generateModificationString() {
-        return "GenerateModificationString()";
-    }
-
-
-    string generateEndString(int startAddress) {
+    //create end string to print in object file
+    string generateEndString(int startAddress) {            //take in the starting address of the section
         stringstream ss;
         string tempString;
-        endString = 'E';
-        ss<<setw(6)<<setfill('0')<<startAddress;
+        endString = 'E';                                    //leading E
+        ss<<setw(6)<<setfill('0')<<startAddress;            //add address
         ss>>tempString;
         endString+=tempString;
         ss.clear();
         tempString="";
-        //endString = "E" + endString + "\n";
         endString+='\n';
-        return endString;
+        return endString;                                   //return E + address
     }
-
-
-}ObjectFile;
+} ObjectFile;
